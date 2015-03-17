@@ -1,0 +1,143 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<!--
+	 This file is part of ATLAS. It is subject to the license terms in
+	 the LICENSE file found in the top-level directory of this distribution.
+	 (Also avialable at http://www.apache.org/licenses/LICENSE-2.0.txt)
+	 You may not use this file except in compliance with the License.
+	-->
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.dfki.asr</groupId>
+	<artifactId>collada-jaxb</artifactId>
+	<version>1.0</version>
+
+	<name>JAXB Classes created from COLLADA DOM</name>
+
+	<description>
+		For ATLAS to be able to export to COLLADA, we construct a model using a
+		JAXB representation of the COLLADA DOM. Since no such representation is
+		publically available, we generate one from the COLLADA XSD. However, the
+		XSD is Copyright (C) 2008 The Khronos Group Inc., Sony Computer Entertainment Inc.
+		Therefore, we cannot include it here. (There is, as far as we know, no
+		redistributon license.) Instead, at compile time, it is downloaded from
+		the original distribution site.
+	</description>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+				The Apache License applies to the files in this distribution,
+				that is, this pom.xml.
+			</comments>
+		</license>
+		<license>
+			<name>Khronos IP Framework</name>
+			<url>https://www.khronos.org/members/ip-framework/</url>
+			<comments>
+				This License applies to the generated classes. Specifically:
+				"developers may freely use implementations of Khronos
+				specifications" [...] "if a non-member is tacitly following the
+				terms of the written reciprocal agreement between the members"
+			</comments>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.2.11</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<generatedSourcesDir>${project.build.directory}/generated-sources</generatedSourcesDir>
+		<xsdDirectory>${generatedSourcesDir}/xsd</xsdDirectory>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>download-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>download-collada-xsd</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>wget</goal>
+						</goals>
+						<configuration>
+							<url>https://www.khronos.org/files/collada_schema_1_5</url>
+							<unpack>false</unpack>
+							<outputDirectory>${xsdDirectory}</outputDirectory>
+							<!-- xjc below depends on the file extension: -->
+							<outputFileName>collada_schema_1_5.xsd</outputFileName>
+							<md5>d8b1d7fa7e9c3abdd70624a89d0a92cc</md5>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- We use this plugin to ensure that our usage of the
+				maven-jaxb2-plugin is JDK 8 compatible in absence of a fix
+				for https://java.net/jira/browse/MAVEN_JAXB2_PLUGIN-80. -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<executions>
+					<execution>
+						<id>set-additional-system-properties</id>
+						<goals>
+							<goal>set-system-properties</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<properties>
+						<property>
+							<name>javax.xml.accessExternalSchema</name>
+							<value>file,http</value>
+						</property>
+					</properties>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>xjc</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<schemaDirectory>${xsdDirectory}</schemaDirectory>
+					<arguments>-extension "${project.basedir}/src/main/resources/simpleMode.xsd"</arguments>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
