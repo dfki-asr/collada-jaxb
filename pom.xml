@@ -12,7 +12,7 @@
 
 	<groupId>de.dfki.asr</groupId>
 	<artifactId>collada-jaxb</artifactId>
-	<version>1.0</version>
+	<version>1.0.1</version>
 
 	<name>JAXB Classes created from COLLADA DOM</name>
 
